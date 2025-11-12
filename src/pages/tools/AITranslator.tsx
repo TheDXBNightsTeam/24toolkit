@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Globe, Copy } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { callAI } from '@/lib/ai'
 
 const languages = [
   { code: 'es', name: 'Spanish' },
@@ -20,11 +22,14 @@ const languages = [
   { code: 'hi', name: 'Hindi' },
 ]
 
+type Provider = 'anthropic' | 'groq'
+
 export default function AITranslator() {
   const [inputText, setInputText] = useState('')
   const [targetLang, setTargetLang] = useState('es')
   const [translatedText, setTranslatedText] = useState('')
   const [loading, setLoading] = useState(false)
+  const [provider, setProvider] = useState<Provider>('anthropic')
 
   const translateText = async () => {
     if (!inputText.trim()) {
@@ -33,16 +38,20 @@ export default function AITranslator() {
     }
 
     setLoading(true)
+    setTranslatedText('')
+    
     try {
       const promptText = `Translate the following text to ${languages.find(l => l.code === targetLang)?.name}. Return only the translation, nothing else:
 
 ${inputText}`
 
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
-      setTranslatedText(result)
+      await callAI(promptText, provider, (accumulatedText) => {
+        setTranslatedText(accumulatedText)
+      })
       toast.success('Translation complete!')
     } catch (error) {
-      toast.error('Translation failed. Please try again.')
+      console.error('Translation error:', error)
+      toast.error(error instanceof Error ? error.message : 'Translation failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -105,6 +114,24 @@ ${inputText}`
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>AI Provider</Label>
+            <ToggleGroup 
+              type="single" 
+              value={provider} 
+              onValueChange={(value) => value && setProvider(value as Provider)}
+              className="w-full justify-start"
+              variant="outline"
+            >
+              <ToggleGroupItem value="anthropic" className="flex-1">
+                Anthropic Claude
+              </ToggleGroupItem>
+              <ToggleGroupItem value="groq" className="flex-1">
+                Groq
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
 
           <Button

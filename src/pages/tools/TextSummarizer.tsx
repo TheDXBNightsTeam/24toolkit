@@ -8,6 +8,7 @@ import { AILoadingSpinner } from '@/components/ai/AILoadingSpinner'
 import { AIBadge } from '@/components/ai/AIBadge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { callAI } from '@/lib/ai'
 
 type SummaryLength = 'short' | 'medium' | 'detailed'
 type Provider = 'anthropic' | 'groq'
@@ -41,72 +42,11 @@ export default function TextSummarizer() {
 Text to summarize:
 ${text}`
 
-    const modelMap = {
-      anthropic: 'claude-3-haiku-20240307',
-      groq: 'llama3-8b-8192'
-    }
-
     try {
-      const response = await fetch('/api/ai', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: promptText,
-          provider: provider,
-          model: modelMap[provider]
-        }),
+      await callAI(promptText, provider, (accumulatedText) => {
+        setSummary(accumulatedText)
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to summarize text')
-      }
-
-      // Handle streaming response
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
-      let accumulatedText = ''
-
-      if (!reader) {
-        throw new Error('No response body')
-      }
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6)
-            if (data === '[DONE]') {
-              break
-            }
-            
-            try {
-              const parsed = JSON.parse(data)
-              if (parsed.text) {
-                accumulatedText += parsed.text
-                setSummary(accumulatedText)
-              } else if (parsed.error) {
-                throw new Error(parsed.error)
-              }
-            } catch (e) {
-              // Skip invalid JSON lines
-            }
-          }
-        }
-      }
-
-      if (accumulatedText) {
-        toast.success('Text summarized successfully!')
-      } else {
-        throw new Error('No response from AI')
-      }
+      toast.success('Text summarized successfully!')
     } catch (error) {
       console.error('Summarization error:', error)
       toast.error(error instanceof Error ? error.message : 'Failed to summarize text')
