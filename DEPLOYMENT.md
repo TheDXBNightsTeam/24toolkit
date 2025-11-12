@@ -36,6 +36,12 @@ The built files will be in the `dist` directory.
 
 ## 📦 Deployment to Vercel
 
+### Prerequisites
+
+**Important**: Before deploying, you need a GitHub Personal Access Token for AI features to work.
+
+See [ENV_SETUP.md](./ENV_SETUP.md) for detailed instructions on obtaining and configuring the required environment variables.
+
 ### Option 1: Via Vercel CLI
 
 ```bash
@@ -58,6 +64,16 @@ vercel
 - **Build Command**: `npm run build`
 - **Output Directory**: `dist`
 - **Install Command**: `npm install`
+
+### Environment Variables
+
+After deployment, configure the following environment variables in Vercel:
+
+1. `GITHUB_TOKEN` - **Required** for AI-powered tools
+   - Get from: https://github.com/settings/tokens
+   - See [ENV_SETUP.md](./ENV_SETUP.md) for detailed setup instructions
+
+Without this token, all AI-powered tools (Chat Assistant, Text Summarizer, etc.) will show fallback messages.
 
 ## 🏗️ Project Structure
 

@@ -10,16 +10,23 @@
 
 ## 🔑 API Keys You Need to Add in Vercel
 
-### 1. GitHub Spark API ⚠️ CRITICAL
+### 1. GitHub Token ⚠️ CRITICAL
 
-**What it's for**: Powers 10 AI tools (Chat Assistant, Text Summarizer, etc.)  
+**What it's for**: Powers 10 AI tools (Chat Assistant, Text Summarizer, etc.) via GitHub Models API
 **Required**: YES - without this, AI tools will not work  
 **Package**: `@github/spark`
 
-**Environment Variables to Add** (check @github/spark docs for exact names):
+**Environment Variables to Add**:
 ```
-SPARK_API_KEY=<your-key-here>
+GITHUB_TOKEN=<your-github-personal-access-token>
 ```
+
+**How to get it**:
+1. Go to GitHub Settings → Developer settings → Personal access tokens
+2. Generate a new token with appropriate scopes
+3. Copy the token and add it to Vercel environment variables
+
+See `ENV_SETUP.md` for detailed instructions.
 
 **AI Tools that need this**:
 - ✨ AI Text Summarizer
@@ -65,7 +72,7 @@ SPARK_API_KEY=<your-key-here>
    - Build Command: `npm run build`
    - Output Directory: `dist`
 4. **Add environment variables**:
-   - Add Spark API credentials (check @github/spark docs)
+   - Add `GITHUB_TOKEN` (see ENV_SETUP.md for detailed instructions)
 5. **Deploy** 🚀
 6. **Test AI tools** to verify Spark API works
 
@@ -91,9 +98,9 @@ All AI-powered tools require GitHub Spark API configuration.
 
 ## 🚨 Most Important
 
-**YOU MUST CONFIGURE**: GitHub Spark API in Vercel environment variables
+**YOU MUST CONFIGURE**: `GITHUB_TOKEN` in Vercel environment variables
 
-**Without it**: 10 AI tools will show error messages
+**Without it**: 10 AI tools will show error/fallback messages
 
 **With it**: All 77 tools will work! 🎉
 
@@ -105,13 +112,13 @@ All AI-powered tools require GitHub Spark API configuration.
 1. Go to `/tools/chat-assistant` or `/tools/text-summarizer`
 2. Try to use the AI feature
 3. If it works → You're all set! ✅
-4. If it fails → Check Spark API configuration
+4. If it fails → Check `GITHUB_TOKEN` configuration (see ENV_SETUP.md)
 
 ---
 
 ## الخلاصة بالعربي
 
-**الشيء الأهم**: لازم تحط مفاتيح GitHub Spark API في Vercel
+**الشيء الأهم**: لازم تحط `GITHUB_TOKEN` في Vercel
 
 **بدونها**: 10 أدوات الذكاء الاصطناعي ما راح تشتغل  
 **معها**: كل 77 أداة راح تشتغل 100%! 🎉
