@@ -8,14 +8,18 @@ import { AILoadingSpinner } from '@/components/ai/AILoadingSpinner'
 import { AIBadge } from '@/components/ai/AIBadge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { callAI } from '@/lib/ai'
 
 type Tone = 'formal' | 'neutral' | 'casual'
+type Provider = 'anthropic' | 'groq'
 
 export default function ParagraphRewriter() {
   const [inputText, setInputText] = useState('')
   const [outputText, setOutputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [tone, setTone] = useState<Tone>('neutral')
+  const [provider, setProvider] = useState<Provider>('anthropic')
 
   const handleRewrite = async () => {
     if (!inputText.trim()) {
@@ -24,8 +28,7 @@ export default function ParagraphRewriter() {
     }
 
     setIsLoading(true)
-    
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    setOutputText('')
 
     const toneDescriptions = {
       formal: 'professional and formal, suitable for business or academic contexts',
@@ -41,11 +44,13 @@ ${inputText}
 Rewritten text:`
 
     try {
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
-      setOutputText(result.trim())
+      await callAI(promptText, provider, (accumulatedText) => {
+        setOutputText(accumulatedText.trim())
+      })
       toast.success('Text rewritten successfully!')
     } catch (error) {
-      toast.error('Failed to rewrite text')
+      console.error('Rewrite error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to rewrite text')
       setOutputText('AI rewriting temporarily unavailable. The text has been preserved.')
     } finally {
       setIsLoading(false)
@@ -90,8 +95,9 @@ Rewritten text:`
                 Choose the tone for your rewritten text
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3">
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Tone</label>
                 <Select value={tone} onValueChange={(value) => setTone(value as Tone)}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select tone" />
@@ -108,7 +114,27 @@ Rewritten text:`
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">AI Provider</label>
+                <ToggleGroup 
+                  type="single" 
+                  value={provider} 
+                  onValueChange={(value) => value && setProvider(value as Provider)}
+                  className="w-full justify-start"
+                  variant="outline"
+                >
+                  <ToggleGroupItem value="anthropic" className="flex-1">
+                    Anthropic Claude
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="groq" className="flex-1">
+                    Groq
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+              
+              <div className="flex flex-wrap gap-3">
                 <Button
                   onClick={handleRewrite}
                   disabled={!inputText.trim() || isLoading}

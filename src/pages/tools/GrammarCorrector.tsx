@@ -4,12 +4,17 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Copy, Trash, Sparkle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { callAI } from '@/lib/ai'
+
+type Provider = 'anthropic' | 'groq'
 
 export default function GrammarCorrector() {
   const [text, setText] = useState('')
   const [correctedText, setCorrectedText] = useState('')
   const [corrections, setCorrections] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [provider, setProvider] = useState<Provider>('anthropic')
 
   const correctGrammar = async () => {
     if (!text.trim()) {
@@ -18,13 +23,14 @@ export default function GrammarCorrector() {
     }
 
     setIsLoading(true)
+    setCorrectedText('')
     
     try {
       const promptText = `You are a professional grammar and writing assistant. Correct the following text for grammar, spelling, punctuation, and style errors. Return ONLY the corrected text without any explanations or additional commentary:
 
 ${text}`
 
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
+      const result = await callAI(promptText, provider)
       
       setCorrectedText(result.trim())
       
@@ -40,8 +46,8 @@ ${text}`
       setCorrections(foundCorrections.length > 0 ? foundCorrections : ['No corrections needed'])
       toast.success('Grammar checked successfully!')
     } catch (error) {
-      toast.error('Failed to check grammar')
-      console.error(error)
+      console.error('Grammar check error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to check grammar')
     } finally {
       setIsLoading(false)
     }
@@ -97,24 +103,44 @@ ${text}`
                 className="min-h-[200px] resize-y font-normal"
               />
               
-              <div className="flex gap-2">
-                <Button
-                  onClick={correctGrammar}
-                  disabled={!text || isLoading}
-                  variant="default"
-                  className="gap-2"
-                >
-                  <Sparkle size={16} weight="fill" />
-                  {isLoading ? 'Checking...' : 'Check Grammar'}
-                </Button>
-                <Button
-                  onClick={handleClear}
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Trash size={16} />
-                  Clear
-                </Button>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">AI Provider</label>
+                  <ToggleGroup 
+                    type="single" 
+                    value={provider} 
+                    onValueChange={(value) => value && setProvider(value as Provider)}
+                    className="w-full justify-start"
+                    variant="outline"
+                  >
+                    <ToggleGroupItem value="anthropic" className="flex-1">
+                      Anthropic Claude
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="groq" className="flex-1">
+                      Groq
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              
+                <div className="flex gap-2">
+                  <Button
+                    onClick={correctGrammar}
+                    disabled={!text || isLoading}
+                    variant="default"
+                    className="gap-2"
+                  >
+                    <Sparkle size={16} weight="fill" />
+                    {isLoading ? 'Checking...' : 'Check Grammar'}
+                  </Button>
+                  <Button
+                    onClick={handleClear}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <Trash size={16} />
+                    Clear
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

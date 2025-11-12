@@ -6,14 +6,18 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Copy, Envelope } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { callAI } from '@/lib/ai'
 
 type EmailMode = 'formal' | 'casual' | 'business'
+type Provider = 'anthropic' | 'groq'
 
 export default function AIEmailWriter() {
   const [topic, setTopic] = useState('')
   const [mode, setMode] = useState<EmailMode>('formal')
   const [generatedEmail, setGeneratedEmail] = useState('')
   const [loading, setLoading] = useState(false)
+  const [provider, setProvider] = useState<Provider>('anthropic')
 
   const generateEmail = async () => {
     if (!topic.trim()) {
@@ -22,6 +26,8 @@ export default function AIEmailWriter() {
     }
 
     setLoading(true)
+    setGeneratedEmail('')
+    
     try {
       const modeInstructions = {
         formal: 'Write a formal, professional email',
@@ -33,11 +39,13 @@ export default function AIEmailWriter() {
 
 Include a subject line, greeting, body, and professional closing. Format it as a complete email.`
 
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
-      setGeneratedEmail(result)
+      await callAI(promptText, provider, (accumulatedText) => {
+        setGeneratedEmail(accumulatedText)
+      })
       toast.success('Email generated successfully!')
     } catch (error) {
-      toast.error('Failed to generate email. Please try again.')
+      console.error('Email generation error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to generate email. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -93,6 +101,24 @@ Include a subject line, greeting, body, and professional closing. Format it as a
               <TabsTrigger value="casual">Casual</TabsTrigger>
             </TabsList>
           </Tabs>
+
+          <div className="space-y-2">
+            <Label>AI Provider</Label>
+            <ToggleGroup 
+              type="single" 
+              value={provider} 
+              onValueChange={(value) => value && setProvider(value as Provider)}
+              className="w-full justify-start"
+              variant="outline"
+            >
+              <ToggleGroupItem value="anthropic" className="flex-1">
+                Anthropic Claude
+              </ToggleGroupItem>
+              <ToggleGroupItem value="groq" className="flex-1">
+                Groq
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
 
           <Button
             onClick={generateEmail}

@@ -6,11 +6,16 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Copy, Hash } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { callAI } from '@/lib/ai'
+
+type Provider = 'anthropic' | 'groq'
 
 export default function AIHashtagGenerator() {
   const [content, setContent] = useState('')
   const [hashtags, setHashtags] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const [provider, setProvider] = useState<Provider>('anthropic')
 
   const generateHashtags = async () => {
     if (!content.trim()) {
@@ -19,21 +24,26 @@ export default function AIHashtagGenerator() {
     }
 
     setLoading(true)
+    setHashtags([])
+    
     try {
       const promptText = `Generate 15-20 relevant, popular hashtags for social media based on this content: "${content}"
 
 Return only the hashtags, one per line, each starting with #. Include a mix of popular and niche hashtags.`
 
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
-      const tags = result
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.startsWith('#'))
+      await callAI(promptText, provider, (accumulatedText) => {
+        // Extract hashtags from accumulated text
+        const tags = accumulatedText
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => line.startsWith('#'))
+        setHashtags(tags)
+      })
       
-      setHashtags(tags)
-      toast.success(`Generated ${tags.length} hashtags!`)
+      toast.success(`Generated ${hashtags.length} hashtags!`)
     } catch (error) {
-      toast.error('Failed to generate hashtags. Please try again.')
+      console.error('Hashtag generation error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to generate hashtags. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -86,6 +96,24 @@ Return only the hashtags, one per line, each starting with #. Include a mix of p
               onChange={(e) => setContent(e.target.value)}
               rows={5}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>AI Provider</Label>
+            <ToggleGroup 
+              type="single" 
+              value={provider} 
+              onValueChange={(value) => value && setProvider(value as Provider)}
+              className="w-full justify-start"
+              variant="outline"
+            >
+              <ToggleGroupItem value="anthropic" className="flex-1">
+                Anthropic Claude
+              </ToggleGroupItem>
+              <ToggleGroupItem value="groq" className="flex-1">
+                Groq
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
 
           <Button

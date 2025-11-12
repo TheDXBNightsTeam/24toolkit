@@ -5,11 +5,16 @@ import { Copy, Image as ImageIcon, Sparkle, Upload } from '@phosphor-icons/react
 import { toast } from 'sonner'
 import { AILoadingSpinner } from '@/components/ai/AILoadingSpinner'
 import { AIBadge } from '@/components/ai/AIBadge'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { callAI } from '@/lib/ai'
+
+type Provider = 'anthropic' | 'groq'
 
 export default function ImageCaptionGenerator() {
   const [imageUrl, setImageUrl] = useState<string>('')
   const [caption, setCaption] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [provider, setProvider] = useState<Provider>('anthropic')
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -42,16 +47,16 @@ export default function ImageCaptionGenerator() {
     }
 
     setIsLoading(true)
-    
-    await new Promise(resolve => setTimeout(resolve, 2500))
+    setCaption('')
 
     const promptText = `Generate a descriptive and accurate caption for this image. The caption should be concise (1-2 sentences), describe the main subject, setting, and notable details. Make it natural and engaging.`
 
     try {
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
+      const result = await callAI(promptText, provider)
       setCaption(result.trim())
       toast.success('Caption generated successfully!')
     } catch (error) {
+      console.error('Caption generation error:', error)
       const mockCaptions = [
         'A vibrant scene captured in stunning detail, showcasing natural beauty and composition.',
         'An artistic photograph featuring interesting subjects with excellent lighting and perspective.',
@@ -145,22 +150,42 @@ export default function ImageCaptionGenerator() {
                     />
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleGenerateCaption}
-                      disabled={isLoading}
-                      className="gap-2 flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                    >
-                      <Sparkle size={16} weight="fill" />
-                      Generate Caption
-                    </Button>
-                    
-                    <Button
-                      onClick={handleClear}
-                      variant="outline"
-                    >
-                      Clear
-                    </Button>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">AI Provider</label>
+                      <ToggleGroup 
+                        type="single" 
+                        value={provider} 
+                        onValueChange={(value) => value && setProvider(value as Provider)}
+                        className="w-full justify-start"
+                        variant="outline"
+                      >
+                        <ToggleGroupItem value="anthropic" className="flex-1">
+                          Anthropic Claude
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="groq" className="flex-1">
+                          Groq
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleGenerateCaption}
+                        disabled={isLoading}
+                        className="gap-2 flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      >
+                        <Sparkle size={16} weight="fill" />
+                        Generate Caption
+                      </Button>
+                      
+                      <Button
+                        onClick={handleClear}
+                        variant="outline"
+                      >
+                        Clear
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}

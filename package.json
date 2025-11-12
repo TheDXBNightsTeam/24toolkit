@@ -12,6 +12,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@anthropic-ai/sdk": "^0.32.1",
         "@github/spark": "^0.39.0",
         "@heroicons/react": "^2.2.0",
         "@hookform/resolvers": "^5.2.2",
@@ -57,6 +58,7 @@
         "date-fns": "^3.6.0",
         "embla-carousel-react": "^8.5.2",
         "framer-motion": "^12.23.24",
+        "groq-sdk": "^0.8.0",
         "input-otp": "^1.4.2",
         "lucide-react": "^0.484.0",
         "marked": "^15.0.7",
