@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/_spark/llm",
+      "destination": "/api/_spark/llm"
+    }
+  ]
+}
