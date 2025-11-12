@@ -33,46 +33,60 @@ const categories = [
 export default function FuturisticSidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
-    <>
-      <button
-        onClick={() => setIsMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card/50 backdrop-blur-sm border border-white/10 transition-all"
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card/50 backdrop-blur-sm border border-white/10 transition-all"
-        style={{ boxShadow: '0 0 8px rgba(109,40,217,0.3)' }}
-        <List size={24} className="text-foreground" />
-      </button>
+  return (
+    <TooltipProvider>
+      <>
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-card/50 backdrop-blur-sm border border-white/10 transition-all"
+          style={{ boxShadow: '0 0 8px rgba(109,40,217,0.3)' }}
+        >
+          <List size={24} className="text-foreground" />
+        </button>
 
-      {isMobileOpen && (
-      {isMobileOpen && (
-        <>
-          <divhidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-            onClick={() => setIsMobileOpen(false)}
-          />
-          <aside bottom-0 w-72 z-50 bg-[#0a0f1e] border-r border-white/10 overflow-y-auto"
-            className="lg:hidden fixed left-0 top-0 bottom-0 w-72 z-50 bg-[#0a0f1e] border-r border-white/10 overflow-y-auto"
-            style={{ boxShadow: 'inset 0 0 6px rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.5)' }}
-          >e="flex justify-end p-4">
-            <div className="flex justify-end p-4">
-              <button
-                onClick={() => setIsMobileOpen(false)}rs"
-                className="p-2 rounded-lg bg-card/50 hover:bg-white/10 transition-colors"
-              >
-                <X size={24} className="text-foreground" />
-              </button>
-            </div>avigate={() => setIsMobileOpen(false)} />
-            <SidebarContent onNavigate={() => setIsMobileOpen(false)} />
-          </aside>
-        </>
-      )}
-vider>
-}
+        {isMobileOpen && (
+          <>
+            <div
+              className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              onClick={() => setIsMobileOpen(false)}
+            />
+            <aside
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-72 z-50 bg-[#0a0f1e] border-r border-white/10 overflow-y-auto"
+              style={{ boxShadow: 'inset 0 0 6px rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.5)' }}
+            >
+              <div className="flex justify-end p-4">
+                <button
+                  onClick={() => setIsMobileOpen(false)}
+                  className="p-2 rounded-lg bg-card/50 hover:bg-white/10 transition-colors"
+                >
+                  <X size={24} className="text-foreground" />
+                </button>
+              </div>
+              <SidebarContent onNavigate={() => setIsMobileOpen(false)} />
+            </aside>
+          </>
+        )}
+
         <aside
           className="hidden lg:flex fixed left-0 top-0 bottom-0 z-40 w-20 flex-col bg-[#0a0f1e]/95 backdrop-blur-sm border-r border-white/10"
-}) {
-  const location = useLocation()
+          style={{ boxShadow: 'inset 0 0 6px rgba(255,255,255,0.05)' }}
+        >
           <SidebarContent showTooltips={true} />
-        </aside>=== '/'
+        </aside>
+      </>
+    </TooltipProvider>
+  )
+}
+
+interface SidebarContentProps {
+  showTooltips?: boolean
+  onNavigate?: () => void
+}
+
+function SidebarContent({ showTooltips = false, onNavigate }: SidebarContentProps) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const isHomePage = location.pathname === '/'
 
   const handleCategoryClick = (categoryId: string) => {
     if (isHomePage) {
