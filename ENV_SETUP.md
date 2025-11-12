@@ -1,12 +1,35 @@
-# Environment Variables Setup Guide
+# Environment Setup for 24toolkit
 
-This document explains the environment variables required for 24toolkit to work properly in production (Vercel deployment).
+This guide explains how to set up the required environment variables for AI features.
 
 ## Required Environment Variables
 
-### 1. GITHUB_TOKEN (Required for AI Features)
+### Option 1: Anthropic Claude API (Recommended) ⭐
 
-**Purpose**: Enables all AI-powered tools by providing access to GitHub Models API.
+**Best for:** High-quality AI responses, reliable service
+
+1. **Get API Key:**
+   - Visit: https://console.anthropic.com
+   - Sign up or log in
+   - Go to "API Keys"
+   - Click "Create Key"
+   - Copy your key (starts with `sk-ant-`)
+
+2. **Add to Environment:**
+   ```bash
+   ANTHROPIC_API_KEY=sk-ant-your_key_here
+   ```
+
+3. **Supported Models:**
+   - Claude 3.5 Sonnet (most capable)
+   - Claude 3.5 Haiku (fast and efficient)
+   - Claude 3 Opus (highest intelligence)
+
+**Pricing:** Pay-as-you-go, ~$3 per million tokens
+
+### Option 2: GitHub Models API (Alternative)
+
+**Best for:** Testing, development (requires GitHub approval)
 
 **How to get it**:
 1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
