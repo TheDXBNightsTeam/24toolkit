@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/_spark/*.ts": {
+    "api/_spark/**/*.ts": {
       "memory": 1024,
       "maxDuration": 10
     }
@@ -10,7 +10,7 @@
     { "source": "/_spark/user", "destination": "/api/_spark/user" },
     { "source": "/_spark/loaded", "destination": "/api/_spark/loaded" },
     { "source": "/_spark/kv", "destination": "/api/_spark/kv/index" },
-    { "source": "/_spark/kv/:key", "destination": "/api/_spark/kv/[key]" },
+    { "source": "/_spark/kv/:key*", "destination": "/api/_spark/kv/[key]?key=:key*" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [

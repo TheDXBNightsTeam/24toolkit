@@ -26,6 +26,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
+  // Log for debugging
+  console.log(`[KV] Method: ${req.method}, Key: ${key}`);
+
   // Validate key
   if (!key || typeof key !== "string") {
     return res.status(400).json({ error: "Key parameter is required" });
