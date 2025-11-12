@@ -7,14 +7,17 @@ import { toast } from 'sonner'
 import { AILoadingSpinner } from '@/components/ai/AILoadingSpinner'
 import { AIBadge } from '@/components/ai/AIBadge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 type SummaryLength = 'short' | 'medium' | 'detailed'
+type Provider = 'anthropic' | 'groq'
 
 export default function TextSummarizer() {
   const [text, setText] = useState('')
   const [summary, setSummary] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [summaryLength, setSummaryLength] = useState<SummaryLength>('medium')
+  const [provider, setProvider] = useState<Provider>('anthropic')
 
   const handleSummarize = async () => {
     if (!text.trim()) {
@@ -23,8 +26,7 @@ export default function TextSummarizer() {
     }
 
     setIsLoading(true)
-    
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    setSummary('')
 
     const lengthConfig = {
       short: { bullets: 3, detail: 'concise' },
@@ -39,12 +41,75 @@ export default function TextSummarizer() {
 Text to summarize:
 ${text}`
 
+    const modelMap = {
+      anthropic: 'claude-3-haiku-20240307',
+      groq: 'llama3-8b-8192'
+    }
+
     try {
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
-      setSummary(result)
-      toast.success('Text summarized successfully!')
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: promptText,
+          provider: provider,
+          model: modelMap[provider]
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to summarize text')
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedText = ''
+
+      if (!reader) {
+        throw new Error('No response body')
+      }
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') {
+              break
+            }
+            
+            try {
+              const parsed = JSON.parse(data)
+              if (parsed.text) {
+                accumulatedText += parsed.text
+                setSummary(accumulatedText)
+              } else if (parsed.error) {
+                throw new Error(parsed.error)
+              }
+            } catch (e) {
+              // Skip invalid JSON lines
+            }
+          }
+        }
+      }
+
+      if (accumulatedText) {
+        toast.success('Text summarized successfully!')
+      } else {
+        throw new Error('No response from AI')
+      }
     } catch (error) {
-      toast.error('Failed to summarize text')
+      console.error('Summarization error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to summarize text')
       setSummary(`• Main topics discussed in the provided content\n• Key points and important information highlighted\n• Essential takeaways from the text\n• Critical details worth noting\n• Summary of main arguments or themes`)
     } finally {
       setIsLoading(false)
@@ -99,6 +164,24 @@ ${text}`
               />
               
               <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">AI Provider</label>
+                  <ToggleGroup 
+                    type="single" 
+                    value={provider} 
+                    onValueChange={(value) => value && setProvider(value as Provider)}
+                    className="w-full justify-start"
+                    variant="outline"
+                  >
+                    <ToggleGroupItem value="anthropic" className="flex-1">
+                      Anthropic Claude
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="groq" className="flex-1">
+                      Groq
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+                
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Select value={summaryLength} onValueChange={(value) => setSummaryLength(value as SummaryLength)}>
                     <SelectTrigger className="w-full sm:w-[180px]">
