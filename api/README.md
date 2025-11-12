@@ -31,6 +31,39 @@ This directory contains Vercel serverless functions that enable AI features in p
 - AI Email Writer
 - AI Hashtag Generator
 
+### `/_spark/kv` - Key-Value Storage
+
+**Location**: `api/_spark/kv/index.ts` and `api/_spark/kv/[key].ts`
+
+**Purpose**: Provides simple key-value storage for persisting data like chat messages.
+
+**How it works**:
+- `GET /_spark/kv` - Returns list of all keys
+- `GET /_spark/kv/{key}` - Returns value for specific key
+- `POST /_spark/kv/{key}` - Sets value for specific key
+- `DELETE /_spark/kv/{key}` - Deletes specific key
+
+**Storage**: Currently uses in-memory storage (not persistent across function restarts)
+
+**Used by**:
+- AI Chat Assistant (stores chat history)
+
+**Note**: For production persistence, consider upgrading to:
+- [Vercel KV](https://vercel.com/docs/storage/vercel-kv)
+- [Upstash Redis](https://upstash.com/)
+
+### `/_spark/user` - User Information
+
+**Location**: `api/_spark/user.ts`
+
+**Purpose**: Stub endpoint for user information (returns null for anonymous users)
+
+### `/_spark/loaded` - Analytics/Telemetry
+
+**Location**: `api/_spark/loaded.ts`
+
+**Purpose**: Stub endpoint for runtime load analytics
+
 ## Development vs Production
 
 ### Development (Vite Dev Server)
