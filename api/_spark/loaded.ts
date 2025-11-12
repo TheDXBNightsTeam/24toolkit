@@ -1,27 +1,30 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
-  // This is a stub endpoint for the Spark runtime's analytics/telemetry
-  // In a real GitHub Spark deployment, this would log runtime load events
-  // For this standalone deployment, we just acknowledge the request
-  
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+/**
+ * Spark Runtime - Telemetry / Loaded Stub
+ *
+ * This endpoint acknowledges analytics or load events from Spark.
+ * It exists mainly to satisfy the Spark runtime environment so it
+ * doesn't throw network errors in standalone deployments.
+ */
 
-  // Handle OPTIONS preflight request
-  if (req.method === 'OPTIONS') {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // --- CORS headers ---
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  // --- Handle OPTIONS preflight ---
+  if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
-  
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+
+  // --- Accept POST or GET (for flexibility) ---
+  if (req.method !== "POST" && req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
-  
-  // Silently acknowledge the load event
+
+  // --- Acknowledge request ---
+  res.setHeader("Content-Type", "application/json");
   return res.status(200).json({ success: true });
 }
