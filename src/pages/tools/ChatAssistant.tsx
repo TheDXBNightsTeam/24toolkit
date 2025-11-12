@@ -8,8 +8,11 @@ import { AIBadge } from '@/components/ai/AIBadge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useKV } from '@github/spark/hooks'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { callAI } from '@/lib/ai'
 
 type Mode = 'creative' | 'precise' | 'friendly'
+type Provider = 'anthropic' | 'groq'
 
 interface Message {
   id: string
@@ -24,6 +27,7 @@ export default function ChatAssistant() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [mode, setMode] = useState<Mode>('friendly')
+  const [provider, setProvider] = useState<Provider>('anthropic')
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -47,8 +51,6 @@ export default function ChatAssistant() {
     setInput('')
     setIsLoading(true)
 
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
     const modePrompts = {
       creative: 'You are a creative and imaginative AI assistant. Provide engaging, creative responses with interesting perspectives and ideas.',
       precise: 'You are a precise and accurate AI assistant. Provide factual, concise, and well-structured responses.',
@@ -62,7 +64,7 @@ User question: ${userMessage.content}
 Provide a helpful response:`
 
     try {
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
+      const result = await callAI(promptText, provider)
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -73,6 +75,7 @@ Provide a helpful response:`
       
       setMessages((prev) => [...(prev || []), assistantMessage])
     } catch (error) {
+      console.error('Chat error:', error)
       const fallbackResponses = {
         creative: "That's a fascinating question! Let me think creatively about this... While I'm temporarily unable to provide my full creative perspective, I'd love to explore this topic further with you once I'm back online.",
         precise: "I appreciate your question. To provide the most accurate response, I would need to access more detailed information. Please try again in a moment.",
@@ -147,24 +150,26 @@ Provide a helpful response:`
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              <Select value={mode} onValueChange={(value) => setMode(value as Mode)}>
-                <SelectTrigger className="w-full sm:w-[220px]">
-                  <SelectValue placeholder="Select mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="creative">
-                    <div className="flex items-center gap-2">
-                      <Sparkle size={16} weight="fill" className="text-purple-500" />
-                      <span className="font-medium">Creative</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="precise">
-                    <div className="flex items-center gap-2">
-                      <Robot size={16} weight="fill" className="text-blue-500" />
-                      <span className="font-medium">Precise</span>
-                    </div>
-                  </SelectItem>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">AI Mode</label>
+                <Select value={mode} onValueChange={(value) => setMode(value as Mode)}>
+                  <SelectTrigger className="w-full sm:w-[220px]">
+                    <SelectValue placeholder="Select mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="creative">
+                      <div className="flex items-center gap-2">
+                        <Sparkle size={16} weight="fill" className="text-purple-500" />
+                        <span className="font-medium">Creative</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="precise">
+                      <div className="flex items-center gap-2">
+                        <Robot size={16} weight="fill" className="text-blue-500" />
+                        <span className="font-medium">Precise</span>
+                      </div>
+                    </SelectItem>
                   <SelectItem value="friendly">
                     <div className="flex items-center gap-2">
                       <Sparkle size={16} weight="fill" className="text-pink-500" />
@@ -173,6 +178,25 @@ Provide a helpful response:`
                   </SelectItem>
                 </SelectContent>
               </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">AI Provider</label>
+                <ToggleGroup 
+                  type="single" 
+                  value={provider} 
+                  onValueChange={(value) => value && setProvider(value as Provider)}
+                  className="w-full justify-start"
+                  variant="outline"
+                >
+                  <ToggleGroupItem value="anthropic" className="flex-1">
+                    Anthropic Claude
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="groq" className="flex-1">
+                    Groq
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
             </CardContent>
           </Card>
 

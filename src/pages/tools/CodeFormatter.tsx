@@ -9,6 +9,10 @@ import { AIBadge } from '@/components/ai/AIBadge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { callAI } from '@/lib/ai'
+
+type Provider = 'anthropic' | 'groq'
 
 export default function CodeFormatter() {
   const [code, setCode] = useState('')
@@ -16,6 +20,7 @@ export default function CodeFormatter() {
   const [explanation, setExplanation] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'format' | 'explain'>('format')
+  const [provider, setProvider] = useState<Provider>('anthropic')
 
   const detectLanguage = (code: string): string => {
     if (code.includes('function') || code.includes('const') || code.includes('let')) return 'javascript'
@@ -34,8 +39,7 @@ export default function CodeFormatter() {
 
     setIsLoading(true)
     setActiveTab('format')
-    
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    setFormattedCode('')
 
     const language = detectLanguage(code)
 
@@ -45,11 +49,12 @@ Code:
 ${code}`
 
     try {
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
+      const result = await callAI(promptText, provider)
       setFormattedCode(result.trim())
       toast.success('Code formatted successfully!')
     } catch (error) {
-      toast.error('Failed to format code')
+      console.error('Format error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to format code')
       setFormattedCode(code)
     } finally {
       setIsLoading(false)
@@ -64,8 +69,7 @@ ${code}`
 
     setIsLoading(true)
     setActiveTab('explain')
-    
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    setExplanation('')
 
     const language = detectLanguage(code)
 
@@ -75,11 +79,13 @@ Code:
 ${code}`
 
     try {
-      const result = await window.spark.llm(promptText, 'gpt-4o-mini')
-      setExplanation(result.trim())
+      await callAI(promptText, provider, (accumulatedText) => {
+        setExplanation(accumulatedText.trim())
+      })
       toast.success('Code explained successfully!')
     } catch (error) {
-      toast.error('Failed to explain code')
+      console.error('Explanation error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to explain code')
       setExplanation('AI explanation temporarily unavailable.')
     } finally {
       setIsLoading(false)
@@ -144,9 +150,28 @@ ${code}`
                 </div>
               )}
               
-              <div className="flex flex-col gap-2">
-                <Button
-                  onClick={handleFormat}
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">AI Provider</label>
+                  <ToggleGroup 
+                    type="single" 
+                    value={provider} 
+                    onValueChange={(value) => value && setProvider(value as Provider)}
+                    className="w-full justify-start"
+                    variant="outline"
+                  >
+                    <ToggleGroupItem value="anthropic" className="flex-1">
+                      Anthropic Claude
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="groq" className="flex-1">
+                      Groq
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <Button
+                    onClick={handleFormat}
                   disabled={!code.trim() || isLoading}
                   className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
                 >
@@ -163,6 +188,7 @@ ${code}`
                   <Sparkle size={16} weight="fill" />
                   Explain Code
                 </Button>
+              </div>
                 
                 <Button
                   onClick={handleClear}
