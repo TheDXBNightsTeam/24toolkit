@@ -6,11 +6,7 @@
     }
   },
   "rewrites": [
-    { "source": "/_spark/llm", "destination": "/api/_spark/llm" },
-    { "source": "/_spark/user", "destination": "/api/_spark/user" },
-    { "source": "/_spark/loaded", "destination": "/api/_spark/loaded" },
-    { "source": "/_spark/kv", "destination": "/api/_spark/kv/index" },
-    { "source": "/_spark/kv/:key*", "destination": "/api/_spark/kv/[key]?key=:key*" },
+    { "source": "/_spark/:path*", "destination": "/api/_spark" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
