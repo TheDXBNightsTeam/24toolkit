@@ -19,6 +19,16 @@ export default async function handler(
   const kvStore = (global as any).kvStore as Map<string, any>();
   const { key } = req.query;
 
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle OPTIONS preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (!key || typeof key !== 'string') {
     return res.status(400).json({ error: 'Key parameter is required' });
   }
