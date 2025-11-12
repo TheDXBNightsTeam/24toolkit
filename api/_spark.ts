@@ -16,27 +16,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  const path = req.url?.replace('/api/_spark', '') || '';
+  // Extract path - handle both /api/_spark and /_spark formats
+  let path = req.url || '';
+  path = path.replace('/api/_spark', '').replace('/_spark', '');
   
-  console.log(`[SPARK PROXY] ${req.method} ${path}`);
+  // Remove query string
+  path = path.split('?')[0];
+  
+  console.log(`[SPARK PROXY] ${req.method} ${path} (original: ${req.url})`);
 
   // Route to appropriate handler
-  if (path === '/llm' || path.startsWith('/llm?')) {
+  if (path === '/llm' || path === '' && req.url?.includes('/llm')) {
     const llmHandler = await import('./_spark/llm');
     return llmHandler.default(req, res);
   }
   
-  if (path === '/user' || path.startsWith('/user?')) {
+  if (path === '/user' || path === '' && req.url?.includes('/user')) {
     const userHandler = await import('./_spark/user');
     return userHandler.default(req, res);
   }
   
-  if (path === '/loaded' || path.startsWith('/loaded?')) {
+  if (path === '/loaded' || path === '' && req.url?.includes('/loaded')) {
     const loadedHandler = await import('./_spark/loaded');
     return loadedHandler.default(req, res);
   }
   
-  if (path === '/kv' || path.startsWith('/kv?')) {
+  if (path === '/kv' || path === '' && req.url?.includes('/kv')) {
     const kvHandler = await import('./_spark/kv/index');
     return kvHandler.default(req, res);
   }
