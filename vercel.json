@@ -5,15 +5,7 @@
     { "src": "/_spark/user", "dest": "/api/_spark/user" },
     { "src": "/_spark/loaded", "dest": "/api/_spark/loaded" },
     { "src": "/_spark/kv$", "dest": "/api/_spark/kv/index" },
-    { "src": "/_spark/kv/(.*)", "dest": "/api/_spark/kv/$1" }
-  ],
-  "rewrites": [
-    { "source": "/_spark/llm", "destination": "/api/_spark/llm" },
-    { "source": "/_spark/user", "destination": "/api/_spark/user" },
-    { "source": "/_spark/loaded", "destination": "/api/_spark/loaded" },
-    { "source": "/_spark/kv", "destination": "/api/_spark/kv/index" },
-    { "source": "/_spark/kv/:key", "destination": "/api/_spark/kv/:key" },
-    { "source": "/(.*)", "destination": "/" }
+    { "src": "/_spark/kv/([^/]+)", "dest": "/api/_spark/kv/$1" }
   ],
   "headers": [
     {
