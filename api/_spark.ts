@@ -16,14 +16,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  // Extract path - handle both /api/_spark and /_spark formats
-  let path = req.url || '';
-  path = path.replace('/api/_spark', '').replace('/_spark', '');
+  // Extract path from query parameter (Vercel rewrite) or URL
+  let path = (req.query.path as string) || req.url || '';
   
-  // Remove query string
+  // If path is array, join it
+  if (Array.isArray(path)) {
+    path = '/' + path.join('/');
+  }
+  
+  // Remove query string and normalize
   path = path.split('?')[0];
+  if (!path.startsWith('/')) {
+    path = '/' + path;
+  }
   
-  console.log(`[SPARK PROXY] ${req.method} ${path} (original: ${req.url})`);
+  console.log(`[SPARK PROXY] ${req.method} ${path} (query: ${req.query.path}, url: ${req.url})`);
 
   // Route to appropriate handler
   if (path === '/llm' || path === '' && req.url?.includes('/llm')) {

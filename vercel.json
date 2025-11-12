@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/_spark/:path*", "destination": "/api/_spark" },
+    { "source": "/_spark/:path*", "destination": "/api/_spark?path=:path*" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
