@@ -18,8 +18,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // --- CORS headers ---
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Spark-Initial");
 
   // Handle OPTIONS preflight
   if (req.method === "OPTIONS") {
@@ -44,6 +44,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === "POST") {
+    try {
+      const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+      kvStore.set(decodedKey, body);
+      return res.status(200).json({ ok: true, key: decodedKey });
+    } catch (error) {
+      console.error("Error setting KV value:", error);
+      return res.status(500).json({ error: "Failed to set value" });
+    }
+  }
+
+  if (req.method === "PUT") {
     try {
       const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
       kvStore.set(decodedKey, body);

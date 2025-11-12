@@ -9,11 +9,28 @@
     { "source": "/_spark/llm", "destination": "/api/_spark/llm" },
     { "source": "/_spark/user", "destination": "/api/_spark/user" },
     { "source": "/_spark/loaded", "destination": "/api/_spark/loaded" },
-    { "source": "/_spark/kv", "destination": "/api/_spark/kv" },
-    { "source": "/_spark/kv/:key", "destination": "/api/_spark/kv/:key" },
+    { "source": "/_spark/kv", "destination": "/api/_spark/kv/index" },
+    { "source": "/_spark/kv/:key", "destination": "/api/_spark/kv/[key]" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
+    {
+      "source": "/_spark/kv(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, X-Spark-Initial"
+        }
+      ]
+    },
     {
       "source": "/_spark/(.*)",
       "headers": [
